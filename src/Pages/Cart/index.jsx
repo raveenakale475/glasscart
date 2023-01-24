@@ -7,17 +7,13 @@ import CartWithoutlogin from "./CartWithoutlogin";
 import PriceDetail from "./priceDetail";
 import SaleBox from "./SaleBox";
 import CouponBox from "./CouponBox";
-import axios from "axios";
 import { useState } from "react";
 import { RingLoader } from "react-spinners";
 import NotFound from "./CartError";
 import { useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
 import { getData } from "../../redux/CartPage/action";
-
-export const getCartData = async () => {
-  return axios.get("https://spotless-erin-trousers.cyclic.app/cart");
-};
+import CartEmpty from "./CartEmpty";
 
 const CartPage = () => {
   const [change, setChange] = useState(false);
@@ -25,19 +21,21 @@ const CartPage = () => {
   const { data, loading, error, ItemCount, Totalprice, Totaldiscountprice } =
     useSelector((state) => state.CartReducer);
 
+  const navigate = useNavigate();
   const dispatch = useDispatch();
 
   useEffect(() => {
-    dispatch(getData());
+    if (error) {
+      navigate("/NotFound");
+    }
+    setTimeout(() => {
+      dispatch(getData());
+    }, 1500);
   }, [change]);
 
-  const navigate = useNavigate();
   return (
     <>
-      <CartNavbar />
-      {error ? (
-        <NotFound />
-      ) : loading ? (
+      {loading ? (
         <Box
           width="20%"
           margin={"auto"}
@@ -48,7 +46,7 @@ const CartPage = () => {
         >
           <RingLoader color="#36d7b7" size={200} />
         </Box>
-      ) : (
+      ) : data.length > 0 ? (
         <Flex
           width={"90%"}
           margin="auto"
@@ -81,13 +79,20 @@ const CartPage = () => {
             <CartLength cartLength={ItemCount} />
             {/* <CartItem /> */}
             {data.map(
-              ({ img_responsive, product_name, product_strike, _id }) => (
+              ({
+                img_responsive,
+                product_name,
+                product_strike,
+                _id,
+                product_discountedPrice,
+              }) => (
                 <CartItem
                   key={_id}
                   id={_id}
                   img_responsive={img_responsive}
                   product_name={product_name}
                   product_strike={product_strike}
+                  product_discountedPrice={product_discountedPrice}
                   setChange={setChange}
                   change={change}
                 />
@@ -121,7 +126,7 @@ const CartPage = () => {
               discountPrice={Totaldiscountprice}
             />
             <SaleBox />
-            <CouponBox totalPrice={Totalprice} />
+            <CouponBox setChange={setChange} change={change} />
 
             <Button
               backgroundColor={"#12daac"}
@@ -137,9 +142,13 @@ const CartPage = () => {
             </Button>
           </Flex>
         </Flex>
+      ) : (
+        <CartEmpty />
       )}
     </>
   );
 };
 
 export default CartPage;
+
+
