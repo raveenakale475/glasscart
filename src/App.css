@@ -1,0 +1,8 @@
+.product_listing {
+  width: 80%;
+  border: 1px solid red;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding: 20px 100px;
+}
